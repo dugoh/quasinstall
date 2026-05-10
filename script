@@ -139,6 +139,7 @@ SHOW DEV
 SHOW CLOCKS
 QUIT
 __EOF__
+}
 
 runit() {
   simh/BIN/microvax3900 sv.ini
