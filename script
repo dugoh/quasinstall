@@ -1,22 +1,21 @@
 #!/bin/bash
 
 buildsimh() {
-git clone https://github.com/simh/simh.git
-#git clone https://github.com/open-simh/simh.git
-cd simh
-#git checkout $1
-gmake vax || make vax
-strip BIN/microvax3900
-cd ..
+  git clone https://github.com/simh/simh.git
+  cd simh
+  #git checkout $1
+  gmake vax || make vax
+  strip BIN/microvax3900
+  cd ..
 }
 
 buildgzcompat() {
-(
-  echo '#include <stdlib.h>'
-  tar -xOf compress/compress.tar ucb/compress/gzcompat.c
-)>gzcompat.c
+  (
+    echo '#include <stdlib.h>'
+    tar -xOf compress/compress.tar ucb/compress/gzcompat.c
+  )>gzcompat.c
 
-gcc -Wno-implicit-int -O -o gzcompat gzcompat.c || cc -Wno-implicit-int -O -o gzcompat gzcompat.c
+  gcc -Wno-implicit-int -O -o gzcompat gzcompat.c || cc -Wno-implicit-int -O -o gzcompat gzcompat.c
 }
 
 buildgzcompatwin() {
@@ -42,14 +41,14 @@ gcc -O -o gzcompat gzcompat.c
 }
 
 maketap() {
-cat 4.3BSD-Quasijarus0c/miniroot.Z   | ./gzcompat | gzip -dc > miniroot
-cat 4.3BSD-Quasijarus0c/rootdump.Z   | ./gzcompat | gzip -dc > rootdump
-cat 4.3BSD-Quasijarus0c/src.tar.Z    | ./gzcompat | gzip -dc > src.tar
-cat 4.3BSD-Quasijarus0c/srcsys.tar.Z | ./gzcompat | gzip -dc > srcsys.tar
-cat 4.3BSD-Quasijarus0c/stand.Z      | ./gzcompat | gzip -dc > stand
-cat 4.3BSD-Quasijarus0c/usr.tar.Z    | ./gzcompat | gzip -dc > usr.tar
-perl mkdisttap/mkdisttap.pl > quas.tap
-cksum miniroot rootdump src.tar srcsys.tar stand usr.tar quas.tap
+  cat 4.3BSD-Quasijarus0c/miniroot.Z   | ./gzcompat | gzip -dc > miniroot
+  cat 4.3BSD-Quasijarus0c/rootdump.Z   | ./gzcompat | gzip -dc > rootdump
+  cat 4.3BSD-Quasijarus0c/src.tar.Z    | ./gzcompat | gzip -dc > src.tar
+  cat 4.3BSD-Quasijarus0c/srcsys.tar.Z | ./gzcompat | gzip -dc > srcsys.tar
+  cat 4.3BSD-Quasijarus0c/stand.Z      | ./gzcompat | gzip -dc > stand
+  cat 4.3BSD-Quasijarus0c/usr.tar.Z    | ./gzcompat | gzip -dc > usr.tar
+  perl mkdisttap/mkdisttap.pl > quas.tap
+  cksum miniroot rootdump src.tar srcsys.tar stand usr.tar quas.tap
 }
 
 writeinis() {
@@ -80,11 +79,6 @@ SET CONSOLE TELNET=LOG=log_file
 set console telnet=buffered=1000000
 __EOF__
 
-#set dz lines = 16
-#att dz -m 1107
-#att dz -am line=n,1108;notelnet
-#set dz 8b
-
 cat >rootdump.ini <<__EOF__
 DO config.ini
 EXPECT ">>>"               SEND "boot mua0:\r"                          ;GO
@@ -108,22 +102,6 @@ DO config.ini
 ATT NVR nvram.dat
 DEP BDR 1
 EXPECT "Device\? \x5BXQA0\x5D: " SEND "dua0:\r" ;GO
-EXPECT "intr ^C\r\n# "           SEND "newfs ra0g ra82\x3B newfs ra0h ra82\r" ;GO
-EXPECT ",\r\n# "                 SEND "mkdir /home\x3B mount /dev/ra0g /usr\r" ;GO
-EXPECT "usr\r\n# "               SEND "cd /dev\x3B MAKEDEV tmscp0\x3B MAKEDEV ra1\x3B MAKEDEV dz0\r" ;GO
-EXPECT "dz0\r\n# "               SEND "cd /usr\x3B mt rew\x3B mt fsf 3\x3B tar xvpbf 20 /dev/rmt12|sed '$!d'\r" ;GO
-EXPECT "0b, 5120 bytes, 10 tape blocks\r\n# " SEND "mkdir src\x3B cd src\x3B mkdir sys\x3B cd sys\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
-EXPECT "link to ../mdec/boot58/bootblk\r\n# " SEND "cd ..\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
-EXPECT "ey.c, 712 bytes, 2 tape blocks\r\n# " SEND "echo \x22/dev/ra0a:/:rw:1:1|/dev/ra0h:/home:rw:1:3|/dev/ra0g:/usr:rw:1:2\x22 |tr '|' '\x5C012' >/etc/fstab\x3B shutdown -h now\r"; GO
-BOOT CPU
-QUIT
-__EOF__
-
-cat >linstall.ini <<"__EOF__"
-DO config.ini
-ATT NVR nvram.dat
-DEP BDR 1
-EXPECT "Device\? \x5BXQA0\x5D: " SEND "dua0:\r" ;GO
 EXPECT "intr ^C\r\n# "           SEND "cd /dev\x3B MAKEDEV ra1 \x3Bnewfs ra1g ra82\x3B newfs ra0h ra82\r" ;GO
 EXPECT ",\r\n# "                 SEND "mkdir /home\x3B mount /dev/ra1g /usr\r" ;GO
 EXPECT "usr\r\n# "               SEND "cd /dev\x3B MAKEDEV tmscp0\x3B MAKEDEV dz0\r" ;GO
@@ -131,45 +109,6 @@ EXPECT "dz0\r\n# "               SEND "mount /dev/ra1a /usr \x3B cd /usr\x3B mt 
 EXPECT "0b, 5120 bytes, 10 tape blocks\r\n# " SEND "mkdir src\x3B cd src\x3B mkdir sys\x3B cd sys\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
 EXPECT "link to ../mdec/boot58/bootblk\r\n# " SEND "cd ..\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
 EXPECT "ey.c, 712 bytes, 2 tape blocks\r\n# " SEND "echo '1d|w|q|' |tr '|' '\x5C012' | ed /usr/lib/crontab\x3B echo \x22/dev/ra0a:/:rw:1:1|/dev/ra0h:/home:rw:1:3|/dev/ra1g:/usr:rw:1:2\x22 |tr '|' '\x5C012' >/etc/fstab\x3B shutdown -h now\r"; GO
-BOOT CPU
-QUIT
-__EOF__
-
-cat >minstall.ini <<"__EOF__"
-DO config.ini
-ATT NVR nvram.dat
-DEP BDR 1
-EXPECT "Device\? \x5BXQA0\x5D: " SEND "dua0:\r" ;GO
-EXPECT "intr ^C\r\n# "           SEND "cd /dev\x3B MAKEDEV ra1 \x3Bnewfs ra1g ra82\x3B newfs ra0b ra82\x3B newfs ra0h ra82\r" ;GO
-EXPECT ",\r\n# "                 SEND "rm /sys\x3B mkdir /sys\x3B mount /dev/ra0b /sys\x3B mkdir /home\x3B mount /dev/ra1g /usr\r" ;GO
-EXPECT "usr\r\n# "               SEND "cd /dev\x3B MAKEDEV tmscp0\x3B MAKEDEV dz0\r" ;GO
-EXPECT "dz0\r\n# "               SEND "cd /usr\x3B mt rew\x3B mt fsf 3\x3B tar xvpbf 20 /dev/rmt12|sed '$!d'\r" ;GO
-EXPECT "0b, 5120 bytes, 10 tape blocks\r\n# " SEND "mkdir src\x3B cd src\x3B mkdir sys\x3B cd sys\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
-EXPECT "link to ../mdec/boot58/bootblk\r\n# " SEND "cd ..\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
-EXPECT "ey.c, 712 bytes, 2 tape blocks\r\n# " SEND "cd /usr/src/sys\3B mv * /sys/\x3B cd ..\x3B rmdir sys\x3B ln -s /sys sys\x3B echo \x22/dev/ra0a:/:rw:1:1|/dev/ra0h:/home:rw:1:3|/dev/ra1g:/usr:ro:0:0!/dev/ra0b:/sys:rw:1:2\x22 |tr '|' '\x5C012' >/etc/fstab\x3B echo labelxx\r"; GO
-EXPECT "labelxx\r\n# "                        SEND "cd /dev\x3B MAKEDEV ra2\x3B disklabel -rw ra2 ra82 \x223\x22 /usr/mdec/rdboot /usr/mdec/bootra\x3B newfs ra2a ra82\x3B newfs ra2b ra82\x3B newfs ra2h ra82\x3B newfs ra2g ra82\x3B shutdown -h now\r"; GO
-BOOT CPU
-QUIT
-__EOF__
-
-cat >pinstall.ini <<"__EOF__"
-DO config.ini
-ATT NVR nvram.dat
-DEP BDR 1
-EXPECT "Device\? \x5BXQA0\x5D: " SEND "dua0:\r" ;GO
-EXPECT "intr ^C\r\n# "           SEND "echo \x22ra82_single|RA82 Single Partition:\x5C\x5C\x22 >> /etc/disktab\x3B echo labels1\r"; GO
-EXPECT "labels1\r\n# "           SEND "echo \x22        :ty=winchester:ns#x2357:nt#x2315:nc#x231423:\x5C\x5C\x22 >> /etc/disktab\x3B echo labels2\r"; GO
-EXPECT "labels2\r\n# "           SEND "echo \x22        :dt=MSCP:\x5C\x5C\x22 >> /etc/disktab\x3B echo labels3\r"; GO
-EXPECT "labels3\r\n# "           SEND "echo \x22        :pa#x231216665:oa#x230:ba#x238192:fa#x231024:\x5C\x5C\x22 >> /etc/disktab\x3B echo labels4\r"; GO
-EXPECT "labels4\r\n# "           SEND "echo \x22        :pc#x231216665:oc#x230:bc#x238192:fc#x231024:\x22 >> /etc/disktab\x3B echo labels5\r"; GO
-EXPECT "labels5\r\n# "           SEND "sync \x3B mkdir /usr/mdec \x3B echo blah > /usr/mdec/aboot\x3B echo blah > /usr/mdec/boota\x3B echo labels6\r"; GO
-EXPECT "labels6\r\n# "           SEND "cd /dev\x3B MAKEDEV ra1 \x3B  disklabel -rw ra1 ra82_single \x22bla\x22  \x3B newfs ra1a ra82_single\x3B newfs ra0g ra82\x3B newfs ra0h ra82\x3B echo labels7\r"; GO
-EXPECT "labels7\r\n# "           SEND "mkdir /home\x3B mount /dev/ra1a /usr\r" ;GO
-EXPECT "usr\r\n# "               SEND "cd /dev\x3B MAKEDEV tmscp0\x3B MAKEDEV dz0\r" ;GO
-EXPECT "dz0\r\n# "               SEND "cd /usr\x3B mt rew\x3B mt fsf 3\x3B tar xvpbf 20 /dev/rmt12|sed '$!d'\r" ;GO
-EXPECT "0b, 5120 bytes, 10 tape blocks\r\n# " SEND "mkdir src\x3B cd src\x3B mkdir sys\x3B cd sys\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
-EXPECT "link to ../mdec/boot58/bootblk\r\n# " SEND "cd ..\x3B mt fsf  \x3B tar xvpbf 20 /dev/rmt12|tail\r" ;GO
-EXPECT "ey.c, 712 bytes, 2 tape blocks\r\n# " SEND "echo \x22/dev/ra0a:/:rw:1:1|/dev/ra0h:/home:rw:1:3|/dev/ra1a:/usr:rw:1:2\x22 |tr '|' '\x5C012' >/etc/fstab\x3B shutdown -h now\r"; GO
 BOOT CPU
 QUIT
 __EOF__
@@ -201,15 +140,6 @@ SHOW CLOCKS
 QUIT
 __EOF__
 
-cat >disktab<<"__EOF__"
-ra82_single|RA82 Single Partition:\
-        :ty=winchester:ns#57:nt#15:nc#1423:\
-        :dt=MSCP:\
-        :pa#1216665:oa#0:ba#8192:fa#1024:\
-        :pc#1216665:oc#0:bc#8192:fc#1024:
-__EOF__
-}
-
 runit() {
   simh/BIN/microvax3900 sv.ini
   rm nvram.dat
@@ -221,7 +151,7 @@ runit() {
   cat log_file >all_log_file; rm log_file
   rm nvram.dat
   date
-  simh/BIN/microvax3900 linstall.ini
+  simh/BIN/microvax3900 install.ini
   date
   cat log_file |tee -a all_log_file
   simh/BIN/microvax3900 movestuff.ini
@@ -232,12 +162,11 @@ runit() {
 }
 
 main() {
-echo main
-buildsimh $1
-buildgzcompat
-maketap
-writeinis
-runit
+  buildsimh $1
+  buildgzcompat
+  maketap
+  writeinis
+  runit
 }
 
 echo starting
